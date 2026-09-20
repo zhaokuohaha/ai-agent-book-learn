@@ -1,0 +1,18 @@
+[project]
+name = "agblearn"
+version = "0.1.0"
+description = "AI Agent learning experiments following ai-agent-book (bojieli)"
+readme = "README.md"
+authors = [
+    { name = "Dev-Chaozeng", email = "chaozeng.fang@dida.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "langchain-core>=1.6.3",
+    "langchain-openai>=1.6.2",
+    "openai>=3.13.0",
+    "python-dotenv>=1.2.3",
+]
+
+[tool.uv]
+package = false
