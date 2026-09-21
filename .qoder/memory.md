@@ -18,6 +18,7 @@ agblearn/
 ```
 
 - **章节脚本命名**：`NN_主题.py`（如 `01_agent.py`、`02_agent_llm.py`），两位序号保证排序即学习顺序
+- **子实验序号**：同一节多个示例用小数点扩展 `NN.M_主题.py`（如 `13.1_status_board.py`），M 从 1 起，语义顺序 NN → NN.1；注意字节排序下 NN.M 排在 NN_ 之前（`.` < `_`），阅读顺序以序号语义为准
 - **共用代码**：配置统一走 `common/config.py`，章节脚本用 `sys.path` 引导后 `from common.xxx import`
 - **禁止**：各章节新建配置文件、硬编码密钥
 

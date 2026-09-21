@@ -6,6 +6,7 @@
 
 - `chapterN/`：每章一个目录，实验脚本可直接运行（`uv run chapterN/xxx.py`）
 - 实验脚本命名带序号：`NN_主题.py`（如 `01_agent.py`、`02_agent_llm.py`），两位序号即实验先后顺序——无序号时文件按字母排序会打乱学习顺序
+- 同一节需要多个示例时用小数点扩展序号：`NN.M_主题.py`（如 `13.1_status_board.py`），M 从 1 起，语义顺序 NN → NN.1 → NN.2；注意按字节排序 `NN.M` 会排在 `NN_` 之前（`.` < `_`），阅读顺序以序号语义和章节 README 为准
 - `common/`：跨章节共用代码。API 配置统一在 `common/config.py`，从根目录 `.env` 读取
 - 章节脚本导入共用代码时，开头需要 sys.path 引导（uv 按脚本方式运行，无包安装）：
 
