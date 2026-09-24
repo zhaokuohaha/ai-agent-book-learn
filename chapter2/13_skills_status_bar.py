@@ -229,3 +229,18 @@ if __name__ == "__main__":
     skill_loader_demo(model)
     print("\n=== 实验 B：状态栏对照（同一任务，无状态栏 vs 有状态栏） ===")
     status_bar_suite(model)
+
+# ---- 执行逻辑与验证（看完代码再回头看这里） ----
+# 执行逻辑：
+#   1. 实验 A（skill_loader_demo）：目录常驻 system（frontmatter 解析出的
+#      name+description）→ 模型自主调 load_skill → 占位符回执 + 正文以
+#      user 消息在调用位置注入 → 按 Skill 规范产出提交信息
+#   2. 实验 B（status_bar_suite）：同一催办任务跑两遍（无/有状态栏），
+#      有栏组每轮删旧状态、status_bar() 生成最新 <agent_status> 借 user
+#      槽位贴末尾（每轮替换式）；计数由 Counter 代码维护，LLM 只读不数
+# 验证内容：
+#   - 实验 A 轨迹角色 system → user → assistant → tool → user → assistant
+#     （Skill 正文注入位置一目了然；若忘 bind_tools，模型会在文本里
+#     "假装调工具"——首次运行实测踩过）
+#   - 实验 B 电话计数每家 ≤ 2（本组两均达标；原书 0.6B 无栏时打到第 4 次——
+#     轨迹越长/模型越小，状态栏价值越大）

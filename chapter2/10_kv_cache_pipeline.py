@@ -227,3 +227,18 @@ if __name__ == "__main__":
         "查一下上海的天气，顺便告诉我现在几点了")
     print("\n=== 实验 B：反模式——时间戳塞进 system ===")
     experiment_b()
+
+# ---- 执行逻辑与验证（看完代码再回头看这里） ----
+# 执行逻辑：
+#   1. 实验 A：ChatPipeline 构造（冻结 system + tools schema，依赖注入）→
+#      ask() 核心循环：每轮 dump 当前 payload → 打印前缀指纹/轨迹角色/与上轮
+#      公共前缀 → invoke 全量重发 → 打印真实缓存命中（usage）→ 有 tool_calls
+#      就查 REGISTRY 执行并追加轨迹 → 无调用收工
+#   2. 实验 B（本地字节对比，不调 API）：同一份 history 构造两轮 payload——
+#      正解（system 冻结+末尾追加）vs 事故（stamped() 每轮改写 system），
+#      commonprefix 量出可复用的缓存前缀
+# 验证内容：
+#   - 前缀指纹两轮一致（铁律 1：system+tools 定稿即冻结）
+#   - turn 2 与上轮公共前缀 = 旧 payload 全长（旧内容字节级不动，新增全在末尾）
+#   - DeepSeek prompt_cache_hit_tokens 上涨（Prompt Cache 跨请求层，命中约 1/10 计费）
+#   - 实验 B：正解全部旧内容命中；事故首异点落在 system 内，其后缓存全灭

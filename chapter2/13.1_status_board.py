@@ -249,3 +249,18 @@ if __name__ == "__main__":
     print(f"\n[终态状态栏]\n{board.render()}")
     print(f"\n[审计] 留档 {len(board.renders)} 份 render 快照；工具计数 {dict(board.tool_calls)}；"
           f"总成本 ¥{board.cost_rmb:.4f}——生产中快照随轨迹落日志，事故回放看得见 Agent 当时'以为'的状态")
+
+# ---- 执行逻辑与验证（看完代码再回头看这里） ----
+# 执行逻辑：
+#   1. Part 1（verify_board_locally，纯本地不烧 API）：四条铁律逐条验证——
+#      计数无文本入参（防投毒）/ BudgetExceeded 熔断 / TODO 状态机终态不可逆 /
+#      替换式注入后 <agent_status> 恰好一条
+#   2. Part 2（run_task 生产管道）：StatusBoard hook 接线（on_turn_start /
+#      inject / on_usage / on_tool_result）+ TODO 专用工具（rewrite_todo /
+#      update_todo_status 经状态机校验）；电信首呼故意 raise TimeoutError
+#      制造错误摘要（带修复建议）
+# 验证内容：
+#   - Part 1 四条断言全过
+#   - Part 2：模型 turn1 自主 rewrite_todo 规划；电信失败后照错误摘要建议
+#     先 check_plan 再重试（针对性修复而非盲目重试）；终态状态栏计数/成本/
+#     TODO 全 completed；renders 留档每轮一份可审计
