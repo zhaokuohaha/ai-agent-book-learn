@@ -11,3 +11,7 @@ wheels/
 
 # 本地密钥配置（不要提交）
 .env
+
+# 记忆实验的运行产物（16 跨会话演示的落盘文件，每次运行重新生成）
+chapter3/memory_store.json
+chapter3/agent_memory.json

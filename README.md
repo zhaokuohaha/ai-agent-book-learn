@@ -74,7 +74,7 @@ uv run chapter1/06_react.py       # ReAct 循环：while 循环 Agent
 - **每章一个目录**：`chapterN/`，实验脚本带序号命名（`NN_主题.py`），可独立运行
 - **共用代码进 `common/`**：配置、工具函数等跨章节复用的代码放这里
 - **LLM/Agent 场景使用 LangChain 生态**：统一接口，便于切换模型和工具
-- **教学优先**：代码保持最小可运行，每个实验聚焦一个概念
+- **教学优先**：代码保持最小可运行，每个实验聚焦一个概念；长度红线——代码行 ≤150、docstring ≤50 行，超限拆 `NN.M` 子实验而非加长（详见 [AGENTS.md](AGENTS.md)）
 - **配置只走 `.env`**：任何脚本不硬编码密钥；读取一律通过 `common/config.py`
 - **依赖管理**：新依赖用 `uv add <pkg>` 添加，不用 pip 手动装
 - 详细约定见 [AGENTS.md](AGENTS.md)
