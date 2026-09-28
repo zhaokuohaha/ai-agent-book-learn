@@ -56,6 +56,7 @@ uv run python -X utf8 <script>   # 需要管道/重定向输出中文时（Windo
 
 - Windows + Git Bash + uv；Python ≥ 3.12
 - `pyproject.toml` 中 `[tool.uv] package = false`（纯脚本项目，不打包安装）
+- 国内网络下大包（torch ~118MB）直连 PyPI 极慢：装包加 `--default-index https://pypi.tuna.tsinghua.edu.cn/simple`；HuggingFace 模型下载设 `$env:HF_ENDPOINT="https://hf-mirror.com"`（bge 嵌入/重排模型首次下载需要；已装 sentence-transformers，bge-small-zh ~95MB 本地缓存后复用）
 - 交互式终端中文正常；**管道捕获中文输出会 GBK 乱码**，验证时用 `uv run python -X utf8 <script>`
 - `uv run -X utf8 <script>` 无效（Python 参数须跟在 `python` 后）
 

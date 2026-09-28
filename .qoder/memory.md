@@ -62,6 +62,12 @@ agblearn/
 - 配置变量：`LLM_API_KEY` / `LLM_BASE_URL` / `LLM_MODEL`（根目录 `.env`）
 - 厂商中立：换厂商只改 `.env`，LangChain 抽象层屏蔽差异
 
+### 嵌入（RAG 章起）
+
+- DeepSeek 无 embeddings API，本地用 sentence-transformers + BAAI/bge-small-zh-v1.5（512 维中文，CPU 毫秒级）
+- BGE 检索不对称：查询侧加指令前缀、文档侧不加
+- 国内网络：pip 用清华镜像、HF 模型用 hf-mirror.com（详见 AGENTS.md 环境）
+
 ## 代码风格
 
 ### 文件头说明概念
