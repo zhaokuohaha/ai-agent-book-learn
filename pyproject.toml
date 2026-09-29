@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "jieba>=0.42.1",
     "langchain-core>=1.6.3",
     "langchain-openai>=1.6.2",
     "openai>=3.13.0",
