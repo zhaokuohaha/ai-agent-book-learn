@@ -1,6 +1,6 @@
-"""chapter4/22.1_tool_granularity.py — ACI 原则一：通用执行器优先，专用工具有理由再上
+"""chapter4/22.2_tool_granularity.py — ACI 原则一：通用执行器优先，专用工具有理由再上
 
-本实验新增的主概念是「工具的粒度与形态决策」。承接 22 的五类地图：地图告诉你
+本实验新增的主概念是「工具的粒度与形态决策」。承接 22.1 的五类地图：地图告诉你
 有哪几类工具；本实验回答「每个工具该做多大」——ACI（Agent-Computer Interface，
 给 Agent 用的接口设计，对应给人用的 HCI）三原则的第一条。
 
@@ -19,7 +19,7 @@ Agent 要协调好几个工具才能干一件事；成熟思路是让工具对�
 注意：形态（做成工具还是 Skill）与披露（一次让模型看见几条）是两个独立
 决策，互不绑定。Skill 明天 D23 展开，今天只留钩子。
 
-运行：uv run python -X utf8 chapter4/22.1_tool_granularity.py（纯本地，不烧 API）
+运行：uv run python -X utf8 chapter4/22.2_tool_granularity.py（纯本地，不烧 API）
 """
 
 import subprocess

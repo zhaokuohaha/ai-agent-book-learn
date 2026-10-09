@@ -1,7 +1,7 @@
-"""chapter4/22.3_param_fidelity.py — ACI 原则三：参数保真——模型的世界不能被偷换
+"""chapter4/22.4_param_fidelity.py — ACI 原则三：参数保真——模型的世界不能被偷换
 
 本实验新增的主概念是「参数保真性」：模型感知的世界与工具操作的世界不能有
-系统性偏差。承接 22.2（描述说清楚了）；本实验管「参数传递的诚实」。
+系统性偏差。承接 22.3（描述说清楚了）；本实验管「参数传递的诚实」。
 
 两种隐蔽反模式（参数层动手脚，都不声张）：
     静默输入转换：工具悄悄「修正」参数。书中案例：某版 Cursor 的替换工具
@@ -27,7 +27,7 @@
 首跑教训：v1/v2 不能共用同一文件——v1 的绕路替换会污染 v2 的初始状态，
 v2 跑前必须重置。
 
-运行：uv run python -X utf8 chapter4/22.3_param_fidelity.py（需 .env，约 6 次真实调用）
+运行：uv run python -X utf8 chapter4/22.4_param_fidelity.py（需 .env，约 6 次真实调用）
 """
 
 import shutil

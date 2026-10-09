@@ -1,4 +1,4 @@
-"""chapter2/13_skills_status_bar.py — Agent Skills 渐进式披露 + 状态栏
+"""chapter2/13.1_skills_status_bar.py — Agent Skills 渐进式披露 + 状态栏
 
 核心概念（原书第 2 章 · W2 Day 13）：
 
@@ -38,7 +38,7 @@ Skills：Agent 世界的 npm 包（作业 1 → 实验 A）
     2. 状态栏 → 实验 B：call_merchant 计数器 + 时间，<agent_status> 注入
     3. 对照实验 → 实验 B：同一任务有/无状态栏各跑一遍，数每家电话次数
 
-运行：uv run python -X utf8 chapter2/13_skills_status_bar.py（需 .env，约 10 次真实调用）
+运行：uv run python -X utf8 chapter2/13.1_skills_status_bar.py（需 .env，约 10 次真实调用）
 """
 
 import sys

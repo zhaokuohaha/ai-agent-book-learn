@@ -1,6 +1,6 @@
-"""chapter2/13.1_status_board.py — 状态栏生产化：从提示词技巧到 Harness 中间件
+"""chapter2/13.2_status_board.py — 状态栏生产化：从提示词技巧到 Harness 中间件
 
-核心概念（承接 13 的状态栏实验，回答"生产怎么落地"）：
+核心概念（承接 13.1 的状态栏实验，回答"生产怎么落地"）：
 
 状态栏不是提示词，是中间件
     13 验证了机制（<agent_status> 借 user 槽位贴末尾）；本文件给出生产形状：
@@ -30,13 +30,13 @@
     P0 时间戳/工具计数 → P1 错误摘要+建议 → P2 TODO 状态机 → P3 与上下文
     压缩联动（压缩前先把关键状态提取进状态栏，删原始记录才有底气）
 
-与 13 的关系：同一催办任务。13 是对照组验证机制，13.1 是生产形状。
+与 13.1 的关系：同一催办任务。13.1 是对照组验证机制，13.2 是生产形状。
     注意：状态栏是"让模型看见"，不是约束执行器——每家 ≤2 次的硬约束
     生产中应在工具层拦（D03 constrain）；本实验聚焦状态栏本身。
 
-序号规则：同一节多个示例用小数点扩展（13 → 13.1 → 13.2…）。
+序号规则：同一节多个实验从小数点 .1 编起（本节 13.1 → 13.2），排序即阅读顺序。
 
-运行：uv run python -X utf8 chapter2/13.1_status_board.py（需 .env，约 8 次真实调用）
+运行：uv run python -X utf8 chapter2/13.2_status_board.py（需 .env，约 8 次真实调用）
 """
 
 import sys
@@ -172,7 +172,7 @@ def verify_board_locally():
 
 
 def run_task(model, task, max_turns=10, budget_rmb=1.0):
-    """Part 2：生产版管道跑催办任务（与 13 同任务）——中间件接线只在这几行"""
+    """Part 2：生产版管道跑催办任务（与 13.1 同任务）——中间件接线只在这几行"""
     board = StatusBoard(max_turns=max_turns, budget_rmb=budget_rmb)
     call_counts = Counter()  # 实体级计数走"工具自查"：返回值自带第 N 次
 
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     )
     print("=== Part 1：StatusBoard 本地验证（不烧 API） ===")
     verify_board_locally()
-    print("\n=== Part 2：生产版管道跑催办任务（与 13 同任务） ===")
+    print("\n=== Part 2：生产版管道跑催办任务（与 13.1 同任务） ===")
     task = ("请帮我催办联通、移动、电信三家的宽带迁移。建议先列 TODO 规划，"
             "每家最多打 2 次电话；电信如果打不通，先查套餐状态再决定。")
     answer, board = run_task(model, task)

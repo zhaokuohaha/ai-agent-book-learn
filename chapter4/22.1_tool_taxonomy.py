@@ -1,4 +1,4 @@
-"""chapter4/22_tool_taxonomy.py — 工具五分类：Agent 的手和脚长在哪
+"""chapter4/22.1_tool_taxonomy.py — 工具五分类：Agent 的手和脚长在哪
 
 本实验新增的主概念是「工具五分类」：一张两轴地图（谁发起 × 作用于谁）。
 D01 说 Agent = LLM + 上下文 + 工具，今天把「工具」这个黑盒展开成地图——
@@ -21,7 +21,7 @@ D01 说 Agent = LLM + 上下文 + 工具，今天把「工具」这个黑盒展�
     别的；未来某刻事件发生，回调带着事件把 Agent 重新拉起。没有第五类，
     Agent 只能被动应答：无法定时行动，无法对新邮件/告警做出反应。
 
-运行：uv run python -X utf8 chapter4/22_tool_taxonomy.py（纯本地，不烧 API）
+运行：uv run python -X utf8 chapter4/22.1_tool_taxonomy.py（纯本地，不烧 API）
 """
 
 from dataclasses import dataclass
