@@ -11,11 +11,17 @@
 
 共享演示语料与 load_faq 也在这里：实验脚本名以数字开头（如 18.1）不能被
 import，跨实验共享的语料/函数只能沉淀到 common（D16 MemoryStore 同款先例）。
+
+bge 加载全仓库收口于此：get_bge() 共享单例（多处建索引只加载一次模型），
+且优先读本地缓存（local_files_only）——跳过 huggingface.co 在线检查，国内
+网络不可达时才不至于每个配置文件 5 次超时重试、卡十几分钟宛妲死机；
+缓存缺失（首次运行）自动回退在线下载。
 """
 
 import math
 import re
 from collections import Counter
+from functools import lru_cache
 
 import jieba
 import numpy as np
@@ -96,12 +102,24 @@ class BM25Index:
         return sorted(scored, reverse=True)[:k]
 
 
+@lru_cache(maxsize=1)
+def get_bge():
+    """共享 bge 实例（全仓库唯一加载点）：多处建 DenseIndex/裸用嵌入只加载一次。
+    先 local_files_only 读本地缓存——跳过 huggingface.co 在线检查（国内网络
+    不可达时每个配置文件 5 次超时重试、卡十几分钟宛妲死机）；缓存缺失
+    （首次运行）回退在线下载，配 HF_ENDPOINT 镜像更稳（见 AGENTS.md）。"""
+    try:
+        return SentenceTransformer(BGE_MODEL, local_files_only=True)
+    except OSError:  # 本地无缓存（首次运行自动下载 ~95MB）→ 在线加载
+        return SentenceTransformer(BGE_MODEL)
+
+
 class DenseIndex:
     """稠密检索引擎：bge 嵌入余弦——Bi-Encoder（查询/文档独立编码），语义模糊匹配"""
 
     def __init__(self, docs, model=None):
         self.docs = docs
-        self.model = model or SentenceTransformer(BGE_MODEL)
+        self.model = model or get_bge()
         self.vecs = self.model.encode(docs)
 
     def search(self, query, k=3):

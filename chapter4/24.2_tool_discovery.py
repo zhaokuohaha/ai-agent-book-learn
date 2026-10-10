@@ -24,8 +24,9 @@ KV Cache 保命（作业③，本实验用 DeepSeek 真实缓存计数字段实�
 的 embedding 检索机制。教学简化：动态工具统一 target 参数（真实系统的
 schema 来自服务端 tools/list，形状任意）。
 
-运行：uv run python -X utf8 chapter4/24.2_tool_discovery.py（需 .env，约 6 次真实调用；
-bge 已在本地缓存时建议光设 $env:HF_HUB_OFFLINE=1 跳过 HF 在线检查，免受重试等待）
+运行：uv run python -X utf8 chapter4/24.2_tool_discovery.py（需 .env，约 6 次真实调用）。
+bge 加载收口 common/retriever.py（get_bge 共享单例；已缓存自动离线，跳过
+huggingface.co 在线检查——国内网络下“卡十几分钟宛妳死机”的教训，详见其文件头）。
 """
 
 import sys
@@ -36,10 +37,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import StructuredTool, tool
 from langchain_openai import ChatOpenAI
-from sentence_transformers import SentenceTransformer
 
 from common.config import API_KEY, BASE_URL, MODEL
-from common.retriever import BGE_MODEL, DenseIndex
+from common.retriever import DenseIndex
 
 # ---- 工具库：4 服务器 × 3 工具（name: 描述, 参数提示, stub 结果） ----
 
@@ -66,13 +66,12 @@ TOOL_SERVERS = {
     },
 }
 
-# ---- 两层语义路由的索引（bge；真实系统离线建一次，D20.3 服务层=缓存同款） ----
+# ---- 两层语义路由的索引（bge 经 get_bge 共享；真实系统离线建一次，D20.3 同款） ----
 
-_bge = SentenceTransformer(BGE_MODEL)
 SERVER_IDX = DenseIndex(
     [f"{s} 服务器：" + "；".join(f"{n}：{d}" for n, (d, _, _) in t.items())
-     for s, t in TOOL_SERVERS.items()], model=_bge)
-TOOL_IDX = {s: DenseIndex([f"{n}：{d}" for n, (d, _, _) in t.items()], model=_bge)
+     for s, t in TOOL_SERVERS.items()])
+TOOL_IDX = {s: DenseIndex([f"{n}：{d}" for n, (d, _, _) in t.items()])
             for s, t in TOOL_SERVERS.items()}
 SERVERS = list(TOOL_SERVERS)
 THRESHOLD = 0.55  # bge 余弦阈值：低于它视为「查无此能力」

@@ -51,10 +51,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
-BGE_MODEL = "BAAI/bge-small-zh-v1.5"  # 512 维中文嵌入模型（~95MB，首次运行自动下载）
-QUERY_PREFIX = "为这个句子生成表示以用于检索相关文章："  # BGE 不对称检索：查询侧加指令、文档侧不加
+# bge 常量与加载收口 common/retriever（共享单例；已缓存自动离线，免 HF 在线检查）
+from common.retriever import QUERY_PREFIX, get_bge
 
 # 多主题 FAQ 文档：退款 + 弱相关的退货 + 两个干扰主题，供检索拉开得分梯度
 DOCUMENT = """# 退款政策
@@ -109,7 +108,7 @@ def retrieve(query, chunks, vecs, model, k=1):
 
 
 if __name__ == "__main__":
-    model = SentenceTransformer(BGE_MODEL)
+    model = get_bge()
     query = "退货要多久到账？"
 
     print("=== Part 0：两种分块策略的块形状（size=60，纯文本对比） ===")
