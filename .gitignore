@@ -18,3 +18,6 @@ chapter3/agent_memory.json
 
 # 收官实验的工作区产物（28 每次运行重建：sales.txt 数据 + Agent 生成的文件）
 chapter4/.agent_ws/
+
+# 第 5 章实验的工作区产物（29.x 每次运行重建：预置代码 + Agent 修复/生成的文件）
+chapter5/.agent_ws/
