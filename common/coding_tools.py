@@ -22,7 +22,7 @@ from pathlib import Path
 
 from langchain_core.tools import BaseTool, tool
 
-ALLOWED = {"python", "dir"}  # bash 白名单：教学版最小集（26.1 拆链校验）
+ALLOWED = {"python"}  # bash 白名单：dir 已移除——glob_search 覆盖其职责且 cmd 内建命令输出 GBK 不可控
 SEGMENT = re.compile(r"&&?|\|\|?")  # 链式命令按 & | 拆段，逐段查白名单
 
 
@@ -139,9 +139,9 @@ def make_tools(ws: Path) -> list[BaseTool]:
     @tool
     def bash(command: str) -> str:
         """当需要在终端执行命令时使用，典型场景：运行测试脚本（python test_xxx.py）。
-        只执行白名单命令（python/dir），链式命令逐段校验；cwd 锁定工作区、
-        超时 15 秒。返回 stdout+stderr（最多 2000 字符）。
-        例如：bash("python test_stats.py")"""
+        只执行白名单命令（python），链式命令逐段校验；查文件清单请用 glob_search
+        （更精确且不依赖终端编码）。cwd 锁定工作区、超时 15 秒。
+        返回 stdout+stderr（最多 2000 字符）。例如：bash("python test_stats.py")"""
         for seg in SEGMENT.split(command):
             parts = seg.strip().split()
             if parts and parts[0].lower() not in ALLOWED:
