@@ -12,7 +12,7 @@
 | 2 | 上下文工程 | `chapter2/` | 🚧 |
 | 3 | 用户记忆和知识库 | `chapter3/` | 🚧 |
 | 4 | 工具（MCP 协议等） | `chapter4/` | ✅ |
-| 5 | Coding Agent 与通用 Agent | `chapter5/` | 🚧 |
+| 5 | Coding Agent 与通用 Agent | `chapter5/` | ✅ |
 | 6 | 交互：观察与动作空间的扩展 | — | |
 | 7 | Agent 的评估 | — | |
 | 8 | 模型后训练 | — | |
