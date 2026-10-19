@@ -27,10 +27,19 @@ SEGMENT = re.compile(r"&&?|\|\|?")  # 链式命令按 & | 拆段，逐段查白�
 
 
 def _run(argv, cwd):
-    """子进程统一入口：UTF-8 强制 + 超时（圈+绳的「绳」）"""
+    """子进程统一入口：UTF-8 强制 + 无缓冲 + 超时（圈+绳的「绳」）——
+    PYTHONUNBUFFERED 让死循环的输出实时进管道：超时被杀时才拿得到死前输出"""
     return subprocess.run(argv, capture_output=True, text=True, cwd=cwd, timeout=15,
                            encoding="utf-8", errors="replace",
-                           env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8",
+                                "PYTHONUNBUFFERED": "1"})
+
+
+def _timeout_feedback(tail: str, limit: int) -> str:
+    """结构化超时反馈（D32）：超时不是静默杀——带回死前最后输出喂回，
+    模型下一轮看得到它被杀前干了什么，才能修正策略（D25/D29 合流）"""
+    tail = (tail or "").strip()[-300:]
+    return f"[超时] 超过 {limit}s 被终止。最后输出：{tail or '（无）'}"
 
 
 def make_tools(ws: Path) -> list[BaseTool]:
@@ -147,12 +156,18 @@ def make_tools(ws: Path) -> list[BaseTool]:
             if parts and parts[0].lower() not in ALLOWED:
                 return f"[拒绝] 链中命令不在白名单：{parts[0]!r}"
         try:
-            r = subprocess.run(command, shell=True, capture_output=True, text=True,
-                               cwd=ws, timeout=15, encoding="utf-8", errors="replace",
-                               env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+            proc = subprocess.Popen(
+                command, shell=True, cwd=ws, stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
+                env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"})
+            out, _ = proc.communicate(timeout=15)
         except subprocess.TimeoutExpired:
-            return "[超时] 命令超过 15 秒，已终止"
-        out = (r.stdout + r.stderr).strip()
+            # Windows 坑：只杀 cmd 外壳杀不掉孙进程——孤儿持有管道写端，收尾
+            # communicate 永久阻塞；taskkill /T 级联杀整棵进程树才有管道 EOF
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
+            out, _ = proc.communicate()  # 树死后读回死前输出（UNBUFFERED 保证已进管道）
+            return _timeout_feedback(out or "", 15)  # 结构化反馈：带回死前输出
+        out = (out or "").strip()
         return out[:2000] if out else "（无输出）"
 
     @tool
@@ -163,8 +178,10 @@ def make_tools(ws: Path) -> list[BaseTool]:
         例如：py_exec("print(sorted([3, 1, 2]))")"""
         try:
             r = _run([sys.executable, "-c", code], cwd=ws)
-        except subprocess.TimeoutExpired:
-            return "[超时] 代码超过 15 秒，已终止"
+        except subprocess.TimeoutExpired as e:
+            raw = getattr(e, "stdout", None)
+            tail = raw.decode("utf-8", "replace") if isinstance(raw, bytes) else (raw or "")
+            return _timeout_feedback(str(tail), 15)  # argv 直跑无孙进程，run 能正常杀
         out = (r.stdout + r.stderr).strip()
         return out[:2000] if out else "（无输出）"
 
