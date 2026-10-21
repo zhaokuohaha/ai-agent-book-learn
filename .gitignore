@@ -24,3 +24,6 @@ chapter5/.agent_ws*/
 
 # 沙箱实验的假凭证目录（32.1 演示用，内容是假钥）
 chapter5/.secrets/
+
+# 示例项目运行产物（学习者画像等，跨会话但不进 git）
+study_agent/data/
