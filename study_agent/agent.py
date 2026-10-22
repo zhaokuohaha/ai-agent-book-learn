@@ -1,18 +1,24 @@
 """study_agent/agent.py — AI 学习伙伴：入口与组装层
 
 study_agent 是贯穿性示例项目（方案见 README.md）：懂课本（knowledge）、
-懂你（memory）、按计划陪你学、随叫随到。本文件是组装层——仓库里唯一
-知道所有模块的地方，把 skills 装到交互循环上。
+懂你（memory）、按计划陪你学（定时复习）、随叫随到（事件响应）。
 
-主循环当前是**临时回合制**（你问它答）——D36 课件论断「回合制是交互
-约定」的活体现；D37 课件来了把它升级为事件驱动 core.py（事件队列/
-任务句柄/抢占），此后 core 稳定不回改（新能力只进 skills/）。
+D37 升级：主循环从临时回合制换成正式事件驱动 core.EventLoop——
+D36 论断「回合制是交互约定」的反转落地：用户输入不再是主循环的
+input()，而是输入线程 emit 的 Event（与定时器事件同一条队列、同一种
+信封）；CLI 提示符由输入线程打印（队列阻塞时提醒仍能到达）。
 
-指令：出题 [N] / 画像 / 题库 / 退出
-运行：uv run python -X utf8 study_agent/agent.py（需 .env——判分用真实 LLM）
+组装（依赖倒置：core 不知道任何 skill，skill 向 core 注册）：
+    loop.on("user", handle_user)     ← quiz 等指令分发
+    loop.on("timer", print_reminder) ← daily_review 的提醒事件
+
+指令：出题 [N] / 画像 / 题库 / 退出；quiz 中想中止直接说（语义路由，如「不答了」）。
+运行：uv run python -X utf8 study_agent/agent.py [定时提醒周期秒数，默认 300]
+（需 .env——判分用真实 LLM）
 """
 
 import sys
+import threading
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))               # study_agent/
@@ -22,27 +28,25 @@ from langchain_openai import ChatOpenAI
 
 from common.config import API_KEY, BASE_URL, MODEL
 
+from core import Event, EventLoop
 from knowledge import collect_questions, render_bank
 from memory import LearnerProfile
+from skills import daily_review
 from skills.quiz import run_quiz
 
-BANNER = """=== AI 学习伙伴（study_agent）===
-指令：出题 [N]（默认 5）｜画像｜题库｜退出"""
+BANNER = """=== AI 学习伙伴（study_agent·事件驱动版）===
+指令：出题 [N]（默认 5）｜画像｜题库｜退出｜（quiz 中想中止直接说，如「不答了」）"""
 
 
 def main() -> None:
+    due = float(sys.argv[1]) if len(sys.argv) > 1 else 300.0  # 定时提醒周期（秒）
     model = ChatOpenAI(api_key=API_KEY, base_url=BASE_URL, model=MODEL,
                        timeout=60, max_retries=3)
     profile = LearnerProfile()
-    print(BANNER)
-    while True:  # 临时回合制主循环（D37 升级为事件驱动 core.py）
-        try:
-            line = input("\n你> ").strip()
-        except EOFError:
-            print()  # 管道输入结束：等价退出（可无人值守验证）
-            break
-        if not line or line in ("退出", "q"):
-            break
+    loop = EventLoop()
+
+    def handle_user(ev: Event) -> None:
+        line = ev.content
         if line.startswith("出题"):
             n = int(line.split()[1]) if len(line.split()) > 1 else 5
             run_quiz(model, profile, n)
@@ -53,6 +57,30 @@ def main() -> None:
             print(f"  共 {len(bank)} 题｜{render_bank(bank)}｜题库随章节 README 自动更新")
         else:
             print("  指令：出题 [N] / 画像 / 题库 / 退出")
+
+    def print_reminder(ev: Event) -> None:
+        print(f"\n[定时提醒] {ev.content}\n你> ", end="", flush=True)
+
+    loop.on("user", handle_user)
+    loop.on("timer", print_reminder)
+    daily_review.start(due, loop, profile)
+
+    def cli_input():
+        """输入线程：CLI 输入 → 统一事件（与定时器同一条队列）"""
+        while True:
+            try:
+                line = input("\n你> ").strip()
+            except EOFError:
+                loop.emit(Event("system", "cli", "quit"))
+                return
+            if not line or line in ("退出", "q"):
+                loop.emit(Event("system", "cli", "quit"))
+                return
+            loop.emit(Event("user", "cli", line))
+
+    print(BANNER)
+    threading.Thread(target=cli_input, daemon=True).start()
+    loop.run()  # 事件驱动主循环：批量消费 → 分发 handler → quit 退出
 
 
 if __name__ == "__main__":
