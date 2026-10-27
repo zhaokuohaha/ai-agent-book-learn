@@ -50,13 +50,20 @@ agent.py（组装层）
 - **tests/test_core.py**：分发/批量顺序/quit 回归；首跑 bug：quit 只在批次首检查，drain 进批次的 quit 导致主循环永久阻塞——修为批内遇 quit 先处理完前面事件再退（不丢已发生的动作）
 - **冒烟实证**：timer 2s 先到点 emit（积压）→ user 指令后到 → 同队列批量消费干净退出；画像里已有用户真实数据（4 题未掌握在重出池）——定时提醒带着真数据工作
 
+### D39 · 能力包三：diagram_explain（讲解图/表）
+
+- **降级决策**：路线图原计划「看截图讲 ASCII 图」——DeepSeek 无视觉端点，但 ASCII 图/对照表本来就是**文本**：扫 chapter*/README.md 找到小节喂 LLM 讲解，零视觉依赖落地（真截图待 vision 端点）；「章节内容讲解」能力的首块拼图——看不懂图来找讲解，学习 agent 核心场景之一
+- **skills/diagram_explain.py**：检索确定性（小节定位纯文本匹配）+ 讲解生成交给 LLM；agent.py 指令 `讲解 <关键词>`（如「讲解 三范式」）
+- **检索两连修教训**：首版按 ``` 代码块检索——实测各章 README **每文件仅 1 对围栏**（图/表全是 md 表格/正文缩进，不在代码块里），设计前提错误→检索全空；改按**标题小节检索**（标题+正文到下一标题为单元，LLM 读 md 表格毫无压力）；排序两级：标题命中优先于正文命中，同级短标题（更聚焦小节）优先
+- **冒烟实证**：「讲解 三范式」→命中「语音三范式（38，课件图）」对照表节，LLM 讲解直接指出「Omni ≠ 全双工（Omni 仍轮流说话靠 VAD）」这个最易误解点——讲解真的用上了课本知识；未命中关键词友好提示；回归全过（题库 202 题）
+
 ### 能力路线图（待长上去）
 
 | 天 | 课程内容 | 计划增量 |
 | --- | --- | --- |
 | ~~D37~~ | ~~异步事件驱动~~ | ~~core.py（事件队列+任务句柄+抢占）+ daily_review 定时复习提醒~~ ✅ 已落地（见上） |
 | D38 | 语音 | voice_quiz（边说边听/可打断）——**未接入**：概念日纪律 + DeepSeek 无语音 API、本地 ASR 不可靠；待有语音 API 时接入（边听边打断需全双工，见 chapter6/38 记忆卡） |
-| D39 | Computer Use | vision_explain（看截图讲 ASCII 图/表格） |
+| ~~D39~~ | ~~Computer Use~~ | ~~vision_explain~~ ✅ **降级接入**：diagram_explain（ASCII 图/对照表→文本小节检索+LLM 讲解；真截图待 vision 端点） |
 | D41-42 | W6 收尾 | report 学习周报 + 全量体检回归 |
 | W7 | 评估 | 被评估对象：指标采集（正确率/复习及时性/轨迹）+ 定量评估 |
 | W9 | 持续进化 | 经验沉淀进 MEMORY.md（怎么教你更有效） |
@@ -64,7 +71,7 @@ agent.py（组装层）
 ## 使用
 
 ```bash
-uv run python -X utf8 study_agent/agent.py     # 交互：出题 [N] / 画像 / 题库 / 退出
+uv run python -X utf8 study_agent/agent.py     # 交互：出题 [N] / 画像 / 题库 / 讲解 <关键词> / 退出
 uv run python -X utf8 study_agent/tests/test_knowledge.py   # 确定性回归
 ```
 
