@@ -12,7 +12,7 @@ input()，而是输入线程 emit 的 Event（与定时器事件同一条队列�
     loop.on("user", handle_user)     ← quiz 等指令分发
     loop.on("timer", print_reminder) ← daily_review 的提醒事件
 
-指令：出题 [N] / 画像 / 题库 / 讲解 <关键词> / 退出；quiz 中想中止直接说（语义路由，如「不答了」）。
+指令：出题 [N] / 画像 / 题库 / 讲解 <关键词> / 周报 / 退出；quiz 中想中止直接说（语义路由，如「不答了」）；周报句柄式后台生成（37.2 幕二同构）。
 运行：uv run python -X utf8 study_agent/agent.py [定时提醒周期秒数，默认 300]
 （需 .env——判分用真实 LLM）
 """
@@ -34,9 +34,10 @@ from memory import LearnerProfile
 from skills import daily_review
 from skills.diagram_explain import explain_block
 from skills.quiz import run_quiz
+from skills.weekly_report import start_report
 
 BANNER = """=== AI 学习伙伴（study_agent·事件驱动版）===
-指令：出题 [N]（默认 5）｜画像｜题库｜讲解 <关键词>｜退出｜（quiz 中想中止直接说，如「不答了」）"""
+指令：出题 [N]（默认 5）｜画像｜题库｜讲解 <关键词>｜周报｜退出｜（quiz 中想中止直接说，如「不答了」）"""
 
 
 def main() -> None:
@@ -58,14 +59,20 @@ def main() -> None:
             print(f"  共 {len(bank)} 题｜{render_bank(bank)}｜题库随章节 README 自动更新")
         elif line.startswith("讲解"):
             explain_block(model, line[2:].strip())
+        elif line == "周报":
+            print(f"  {start_report(model, profile, loop)}")  # 句柄式：立即返回，报告作为事件送达
         else:
-            print("  指令：出题 [N] / 画像 / 题库 / 讲解 <关键词> / 退出")
+            print("  指令：出题 [N] / 画像 / 题库 / 讲解 <关键词> / 周报 / 退出")
 
     def print_reminder(ev: Event) -> None:
         print(f"\n[定时提醒] {ev.content}\n你> ", end="", flush=True)
 
+    def print_report(ev: Event) -> None:
+        print(f"\n[周报已生成]\n{ev.content}\n你> ", end="", flush=True)
+
     loop.on("user", handle_user)
     loop.on("timer", print_reminder)
+    loop.on("report", print_report)  # 后台生成完成的事件送达
     daily_review.start(due, loop, profile)
 
     def cli_input():
